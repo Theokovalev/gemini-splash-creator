@@ -8,14 +8,14 @@ export async function generateImage(prompt: string): Promise<string> {
     console.log("Generating image with prompt:", prompt);
     
     // Use the correct endpoint for image generation
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-vision:generateContent?key=${API_KEY}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         contents: [{
-          parts: [{ text: `Create a photorealistic interior design image of: ${prompt}. Make it look like a professional interior photography for furniture marketing.` }]
+          parts: [{ text: `Create a photorealistic interior design image of: ${prompt}. Make it look like a professional interior photography for furniture marketing. The image should be high quality and detailed.` }]
         }],
         // Setting proper generation parameters
         generationConfig: {
@@ -61,9 +61,7 @@ export async function generateImage(prompt: string): Promise<string> {
   } catch (error) {
     console.error("Error generating image:", error);
     toast.error(`Failed to generate image: ${error.message || "Unknown error"}`);
-    
-    // Return a placeholder interior design image in case of error
-    return "https://picsum.photos/seed/interior/800/800";
+    throw error; // Re-throw the error to be handled by the calling function
   }
 }
 

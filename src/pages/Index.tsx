@@ -20,6 +20,18 @@ const Index = () => {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { isAuthenticated } = useAuth();
 
+  const handleAuthSuccess = () => {
+    setIsAuthDialogOpen(false);
+    
+    if (imageUrl) {
+      toast.success('Authentication successful! Redirecting to editor...');
+      localStorage.setItem('editImage', imageUrl);
+      setTimeout(() => {
+        navigate('/editor');
+      }, 1500);
+    }
+  };
+
   const handleFileSelect = (file: File) => {
     const url = URL.createObjectURL(file);
     setImageUrl(url);
@@ -30,7 +42,9 @@ const Index = () => {
       toast.success('Image uploaded successfully! Redirecting to editor...');
       setTimeout(() => {
         navigate('/editor');
-      }, 1000);
+      }, 1500);
+    } else {
+      setIsAuthDialogOpen(true);
     }
   };
 
@@ -47,11 +61,11 @@ const Index = () => {
       
       localStorage.setItem('editImage', url);
       
-      toast.success('Image generated successfully!');
+      toast.success('Image generated successfully! Redirecting to editor...');
       
       setTimeout(() => {
         navigate('/editor');
-      }, 1000);
+      }, 1500);
       
     } catch (error) {
       console.error('Error generating image:', error);
@@ -71,13 +85,8 @@ const Index = () => {
     setActiveTab('upload');
   };
 
-  const handleAuthSuccess = () => {
-    if (imageUrl) {
-      toast.success('Authentication successful! Redirecting to editor...');
-      setTimeout(() => {
-        navigate('/editor');
-      }, 1000);
-    }
+  const handleAuthRequired = () => {
+    setIsAuthDialogOpen(true);
   };
 
   const handleEditClick = () => {
@@ -94,16 +103,11 @@ const Index = () => {
     navigate('/editor');
   };
 
-  const handleAuthRequired = () => {
-    setIsAuthDialogOpen(true);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 py-10 md:py-16">
-        {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold mb-4">
             Photorealistic images of your furniture <span className="text-primary">in seconds</span>
@@ -113,7 +117,6 @@ const Index = () => {
             Create, edit, and perfect your interior images in minutes with an intuitive, AI-driven interface.
           </p>
           
-          {/* Insert the before/after image */}
           <div className="max-w-4xl mx-auto my-8 rounded-lg overflow-hidden shadow-xl">
             <img 
               src="/lovable-uploads/85125504-2d24-4dee-ba30-87b11b243c7f.png" 
@@ -163,7 +166,6 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Interactive Prompt Section */}
         <div className="grid md:grid-cols-2 gap-8 mb-16">
           <div>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
@@ -185,6 +187,7 @@ const Index = () => {
                   isGenerating={isGenerating}
                   placeholder="Describe your perfect interior – e.g., 'Modern living room with minimalist furniture and natural light, ready for quick edits'."
                   buttonText="Create My Image"
+                  onAuthRequired={handleAuthRequired}
                 />
               </TabsContent>
             </Tabs>
@@ -205,7 +208,6 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Features Section */}
         <h2 className="text-2xl font-bold text-center mb-8">Why Furniture Brands Choose Us</h2>
         <div className="grid md:grid-cols-4 gap-6 mb-16">
           <FeatureCard 
@@ -246,7 +248,7 @@ const Index = () => {
             description="Enjoy a streamlined interface designed to fit into your creative process effortlessly."
             icon={
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 1 0 7H18C18.5523 20 19 19.5523 19 19V12"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
@@ -255,7 +257,6 @@ const Index = () => {
           />
         </div>
         
-        {/* How It Works Section */}
         <div className="bg-white rounded-xl p-8 mb-16">
           <h2 className="text-2xl font-bold text-center mb-8">How It Works</h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -279,7 +280,6 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Product Categories Section */}
         <div className="mb-16">
           <img 
             src="/lovable-uploads/7be9e94c-de92-46b2-b8c7-020d63caa3c3.png" 
@@ -289,7 +289,6 @@ const Index = () => {
         </div>
       </main>
       
-      {/* Footer Section */}
       <footer className="py-8 border-t mt-20 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 mb-8">

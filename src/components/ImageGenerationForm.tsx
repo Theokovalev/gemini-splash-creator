@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { toast } from "sonner";
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ImageGenerationFormProps {
   onGenerateImage: (prompt: string) => Promise<void>;
@@ -10,6 +11,8 @@ interface ImageGenerationFormProps {
   placeholder?: string;
   buttonText?: string;
   label?: string;
+  requireAuth?: boolean;
+  onAuthRequired?: () => void;
 }
 
 const ImageGenerationForm = ({ 
@@ -17,15 +20,24 @@ const ImageGenerationForm = ({
   isGenerating, 
   placeholder = "Describe the image you want to generate...",
   buttonText = "Generate Image",
-  label = "Interior Description"
+  label = "Interior Description",
+  requireAuth = true,
+  onAuthRequired
 }: ImageGenerationFormProps) => {
   const [prompt, setPrompt] = useState('');
+  const { isAuthenticated } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!prompt.trim()) {
       toast.error('Please enter a prompt');
+      return;
+    }
+
+    // Check authentication if required
+    if (requireAuth && !isAuthenticated && onAuthRequired) {
+      onAuthRequired();
       return;
     }
 
