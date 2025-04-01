@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, History, Send, CheckCircle, RotateCcw, Share, Download, Clock } from 'lucide-react';
@@ -8,12 +9,12 @@ import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { downloadImage, editImage } from '@/services/geminiService';
+import ImageGenerationForm from '@/components/ImageGenerationForm';
 
 const Editor = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [editPrompt, setEditPrompt] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [editHistory, setEditHistory] = useState<{id: string, timestamp: string, description: string, thumbnail: string}[]>([]);
   const [showProcessingOverlay, setShowProcessingOverlay] = useState(false);
@@ -24,6 +25,7 @@ const Editor = () => {
     if (!isAuthenticated) {
       toast.error('Please login to access the editor');
       navigate('/');
+      return;
     }
     
     // Check if there's an image in localStorage (from previous upload)
@@ -40,6 +42,9 @@ const Editor = () => {
         }
       ]);
       setCurrentVersion(0);
+    } else {
+      toast.error('No image found. Please upload an image first.');
+      navigate('/');
     }
   }, [isAuthenticated, navigate]);
 
@@ -47,9 +52,8 @@ const Editor = () => {
     navigate('/');
   };
 
-  const handlePromptSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editPrompt.trim()) {
+  const handlePromptSubmit = async (prompt: string) => {
+    if (!prompt.trim()) {
       toast.error('Please enter a prompt to edit the image');
       return;
     }
@@ -64,13 +68,13 @@ const Editor = () => {
     
     try {
       // Call the Gemini API to edit the image
-      const editedImageUrl = await editImage(imageUrl, editPrompt);
+      const editedImageUrl = await editImage(imageUrl, prompt);
       
       // Add the new version to history
       const newVersion = {
         id: (editHistory.length + 1).toString(),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        description: editPrompt,
+        description: prompt,
         thumbnail: editedImageUrl
       };
       
@@ -78,7 +82,6 @@ const Editor = () => {
       setCurrentVersion(editHistory.length);
       setImageUrl(editedImageUrl);
       
-      setEditPrompt('');
       toast.success('Image edited successfully');
     } catch (error) {
       console.error('Error editing image:', error);
@@ -170,38 +173,20 @@ const Editor = () => {
               )}
             </Card>
             
-            <div className="mt-6">
-              <form onSubmit={handlePromptSubmit} className="relative">
-                <div className="flex items-center p-2 bg-white rounded-full border focus-within:border-blue-500 transition-colors shadow-sm">
-                  <div className="flex-shrink-0 ml-2 mr-3">
-                    <div className="h-5 w-5 text-blue-600">
-                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" className="h-5 w-5">
-                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M8 12L11 15L16 9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                  </div>
-                  <input
-                    type="text"
-                    value={editPrompt}
-                    onChange={(e) => setEditPrompt(e.target.value)}
-                    placeholder="What changes would you like to make to this image?"
-                    className="flex-1 py-2 focus:outline-none text-sm"
-                  />
-                  <button 
-                    type="submit" 
-                    className={`ml-2 mr-2 rounded-full p-2 ${isProcessing || !editPrompt.trim() ? 'bg-gray-100 text-gray-400' : 'bg-blue-100 text-blue-600'}`}
-                    disabled={isProcessing || !editPrompt.trim()}
-                  >
-                    <Send className="h-4 w-4" />
-                  </button>
-                </div>
-              </form>
+            <div className="mt-6 px-4 py-6 bg-white rounded-lg border">
+              <h3 className="font-medium mb-4">Generate interior design with your furniture</h3>
+              <ImageGenerationForm 
+                onGenerateImage={handlePromptSubmit}
+                isGenerating={isProcessing}
+                placeholder="Describe the interior setting for your furniture - e.g., 'Modern minimalist living room with white walls, wooden floor, and natural light'"
+                buttonText="Generate Interior Design"
+                label="Describe your ideal interior setting"
+              />
             </div>
             
             <div className="mt-6 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" onClick={handleViewOriginal}>
                   <RotateCcw className="h-5 w-5" />
                 </Button>
               </div>

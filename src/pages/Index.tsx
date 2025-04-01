@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -36,6 +35,11 @@ const Index = () => {
   };
 
   const handleGenerateImage = async (prompt: string) => {
+    if (!isAuthenticated) {
+      setIsAuthDialogOpen(true);
+      return;
+    }
+    
     setIsGenerating(true);
     try {
       const url = await generateImage(prompt);
@@ -45,11 +49,10 @@ const Index = () => {
       
       toast.success('Image generated successfully!');
       
-      if (isAuthenticated) {
-        setTimeout(() => {
-          navigate('/editor');
-        }, 1000);
-      }
+      setTimeout(() => {
+        navigate('/editor');
+      }, 1000);
+      
     } catch (error) {
       console.error('Error generating image:', error);
       toast.error('Failed to generate image. Please try again.');
@@ -65,15 +68,16 @@ const Index = () => {
   };
 
   const handleUploadClick = () => {
-    if (!isAuthenticated) {
-      setIsAuthDialogOpen(true);
-    } else {
-      setActiveTab('upload');
-    }
+    setActiveTab('upload');
   };
 
   const handleAuthSuccess = () => {
-    setActiveTab('upload');
+    if (imageUrl) {
+      toast.success('Authentication successful! Redirecting to editor...');
+      setTimeout(() => {
+        navigate('/editor');
+      }, 1000);
+    }
   };
 
   const handleEditClick = () => {
@@ -88,6 +92,10 @@ const Index = () => {
     }
     
     navigate('/editor');
+  };
+
+  const handleAuthRequired = () => {
+    setIsAuthDialogOpen(true);
   };
 
   return (
@@ -165,7 +173,10 @@ const Index = () => {
               </TabsList>
               
               <TabsContent value="upload" className="pt-6">
-                <DropZone onFileSelect={handleFileSelect} />
+                <DropZone 
+                  onFileSelect={handleFileSelect} 
+                  onAuthRequired={handleAuthRequired}
+                />
               </TabsContent>
               
               <TabsContent value="generate" className="pt-6">

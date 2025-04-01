@@ -2,14 +2,17 @@
 import React, { useState, useRef } from 'react';
 import { Button } from './ui/button';
 import { toast } from "sonner";
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DropZoneProps {
   onFileSelect: (file: File) => void;
+  onAuthRequired: () => void;
 }
 
-const DropZone = ({ onFileSelect }: DropZoneProps) => {
+const DropZone = ({ onFileSelect, onAuthRequired }: DropZoneProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isAuthenticated } = useAuth();
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -28,6 +31,11 @@ const DropZone = ({ onFileSelect }: DropZoneProps) => {
     e.stopPropagation();
     setIsDragging(false);
 
+    if (!isAuthenticated) {
+      onAuthRequired();
+      return;
+    }
+
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
       validateAndProcessFile(files[0]);
@@ -35,6 +43,11 @@ const DropZone = ({ onFileSelect }: DropZoneProps) => {
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isAuthenticated) {
+      onAuthRequired();
+      return;
+    }
+
     const files = e.target.files;
     if (files && files.length > 0) {
       validateAndProcessFile(files[0]);
@@ -59,6 +72,11 @@ const DropZone = ({ onFileSelect }: DropZoneProps) => {
   };
 
   const triggerFileInput = () => {
+    if (!isAuthenticated) {
+      onAuthRequired();
+      return;
+    }
+
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }

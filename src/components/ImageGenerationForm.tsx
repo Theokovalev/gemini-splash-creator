@@ -9,13 +9,15 @@ interface ImageGenerationFormProps {
   isGenerating: boolean;
   placeholder?: string;
   buttonText?: string;
+  label?: string;
 }
 
 const ImageGenerationForm = ({ 
   onGenerateImage, 
   isGenerating, 
   placeholder = "Describe the image you want to generate...",
-  buttonText = "Generate Image"
+  buttonText = "Generate Image",
+  label = "Interior Description"
 }: ImageGenerationFormProps) => {
   const [prompt, setPrompt] = useState('');
 
@@ -40,7 +42,7 @@ const ImageGenerationForm = ({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="prompt" className="block mb-2 text-sm font-medium">
-          Interior Description
+          {label}
         </label>
         <Textarea
           id="prompt"
