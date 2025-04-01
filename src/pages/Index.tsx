@@ -100,10 +100,19 @@ const Index = () => {
           <h1 className="text-4xl font-bold mb-4">
             Photorealistic images of your furniture <span className="text-primary">in seconds</span>
           </h1>
-          <p className="text-gray-600 max-w-3xl mx-auto">
+          <p className="text-gray-600 max-w-3xl mx-auto mb-6">
             Empower your furniture brand with a tool that eliminates costly photoshoots and expensive designers. 
             Create, edit, and perfect your interior images in minutes with an intuitive, AI-driven interface.
           </p>
+          
+          {/* Insert the before/after image */}
+          <div className="max-w-4xl mx-auto my-8 rounded-lg overflow-hidden shadow-xl">
+            <img 
+              src="/lovable-uploads/85125504-2d24-4dee-ba30-87b11b243c7f.png" 
+              alt="Before and after comparison showing furniture visualization" 
+              className="w-full h-auto"
+            />
+          </div>
           
           <div className="flex flex-wrap justify-center gap-3 mt-8">
             <Button 
