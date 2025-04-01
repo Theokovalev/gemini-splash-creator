@@ -1,16 +1,22 @@
 
 import React, { useState } from 'react';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { toast } from "sonner";
 
 interface ImageGenerationFormProps {
   onGenerateImage: (prompt: string) => Promise<void>;
   isGenerating: boolean;
+  placeholder?: string;
+  buttonText?: string;
 }
 
-const ImageGenerationForm = ({ onGenerateImage, isGenerating }: ImageGenerationFormProps) => {
+const ImageGenerationForm = ({ 
+  onGenerateImage, 
+  isGenerating, 
+  placeholder = "Describe the image you want to generate...",
+  buttonText = "Generate Image"
+}: ImageGenerationFormProps) => {
   const [prompt, setPrompt] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,11 +39,11 @@ const ImageGenerationForm = ({ onGenerateImage, isGenerating }: ImageGenerationF
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="prompt" className="block mb-2 text-sm font-medium">
-          Image Description
+          Interior Description
         </label>
         <Textarea
           id="prompt"
-          placeholder="Describe the image you want to generate..."
+          placeholder={placeholder}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           className="min-h-24"
@@ -59,7 +65,7 @@ const ImageGenerationForm = ({ onGenerateImage, isGenerating }: ImageGenerationF
               <path d="M12 5V19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Generate Image
+            {buttonText}
           </>
         )}
       </Button>

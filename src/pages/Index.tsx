@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -94,13 +95,14 @@ const Index = () => {
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 py-10 md:py-16">
+        {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold mb-4">
-            Edit Images with <span className="text-primary">AI</span>
+            Photorealistic images of your furniture <span className="text-primary">in seconds</span>
           </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Upload an image or generate one with AI, then use your words to
-            describe what you want to change - no design skills required.
+          <p className="text-gray-600 max-w-3xl mx-auto">
+            Empower your furniture brand with a tool that eliminates costly photoshoots and expensive designers. 
+            Create, edit, and perfect your interior images in minutes with an intuitive, AI-driven interface.
           </p>
           
           <div className="flex flex-wrap justify-center gap-3 mt-8">
@@ -113,7 +115,7 @@ const Index = () => {
                 <path d="M12 3L12 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M8 7L12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Upload Image
+              Upload Reference
             </Button>
             
             <Button 
@@ -126,7 +128,7 @@ const Index = () => {
                 <circle cx="9" cy="9" r="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M21 15L16 10L5 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Generate Photo
+              Generate Interior
             </Button>
             
             <Button 
@@ -139,17 +141,18 @@ const Index = () => {
                 <path d="M11 4H4C3.44772 4 3 4.44772 3 5V19C3 19.5523 3.44772 20 4 20H18C18.5523 20 19 19.5523 19 19V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M18.5 2.5C19.3284 2.5 20 3.17157 20 4C20 4.82843 19.3284 5.5 18.5 5.5L12 12L8 13L9 9L15.5 2.5C16.3284 2.5 17 3.17157 17 4C17 4.82843 16.3284 5.5 15.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Editing Tools
+              Edit Your Image
             </Button>
           </div>
         </div>
         
+        {/* Interactive Prompt Section */}
         <div className="grid md:grid-cols-2 gap-8 mb-16">
           <div>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
               <TabsList className="w-full grid grid-cols-2">
-                <TabsTrigger value="upload">Upload</TabsTrigger>
-                <TabsTrigger value="generate">Generate</TabsTrigger>
+                <TabsTrigger value="upload">Upload Image</TabsTrigger>
+                <TabsTrigger value="generate">Generate Interior</TabsTrigger>
               </TabsList>
               
               <TabsContent value="upload" className="pt-6">
@@ -160,14 +163,16 @@ const Index = () => {
                 <ImageGenerationForm 
                   onGenerateImage={handleGenerateImage}
                   isGenerating={isGenerating}
+                  placeholder="Describe your perfect interior – e.g., 'Modern living room with minimalist furniture and natural light, ready for quick edits'."
+                  buttonText="Create My Image"
                 />
               </TabsContent>
             </Tabs>
             
             <p className="text-sm text-center text-gray-500 mt-2">
               {activeTab === 'upload' ? 
-                'Supported formats: JPEG, PNG, and more!' : 
-                'Describe the image you want to create in detail'}
+                'Upload reference images of your furniture or interiors to enhance results.' : 
+                'A detailed description helps our AI create exactly what you need.'}
             </p>
           </div>
           
@@ -180,10 +185,12 @@ const Index = () => {
           </div>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-6">
+        {/* Features Section */}
+        <h2 className="text-2xl font-bold text-center mb-8">Why Furniture Brands Choose Us</h2>
+        <div className="grid md:grid-cols-4 gap-6 mb-16">
           <FeatureCard 
-            title="Upload or Generate"
-            description="Start with your own image or let AI create one for you"
+            title="Instant Results"
+            description="Get professional-quality interior images without expensive photoshoots or design teams."
             icon={
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 14V18C21 19.1046 20.1046 20 19 20H5C3.89543 20 3 19.1046 3 18V14" />
@@ -194,8 +201,8 @@ const Index = () => {
           />
           
           <FeatureCard 
-            title="Edit"
-            description="Describe changes using natural language"
+            title="Easy Editing"
+            description="Fine-tune images with simple editing tools - adjust lighting, color, and layout to match your brand."
             icon={
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M11 4H4C3.44772 4 3 4.44772 3 5V19C3 19.5523 3.44772 20 4 20H18C18.5523 20 19 19.5523 19 19V12" />
@@ -205,27 +212,79 @@ const Index = () => {
           />
           
           <FeatureCard 
-            title="Download"
-            description="Save your professionally edited image"
+            title="Cost-Effective"
+            description="Reduce overhead and turnaround time by creating visuals ready for e-commerce and marketing."
             icon={
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" />
-                <path d="M7 10L12 15L17 10" />
-                <path d="M12 15V3" />
+                <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+            }
+          />
+          
+          <FeatureCard 
+            title="User-Friendly"
+            description="Enjoy a streamlined interface designed to fit into your creative process effortlessly."
+            icon={
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
               </svg>
             }
           />
         </div>
+        
+        {/* How It Works Section */}
+        <div className="bg-white rounded-xl p-8 mb-16">
+          <h2 className="text-2xl font-bold text-center mb-8">How It Works</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">1</div>
+              <h3 className="font-medium mb-2">Describe Your Vision</h3>
+              <p className="text-gray-600 text-sm">Enter your detailed interior concept using our easy-to-use prompt tool. Or use templates.</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">2</div>
+              <h3 className="font-medium mb-2">Instant Image Creation</h3>
+              <p className="text-gray-600 text-sm">Our AI processes your description to deliver a suite of tailored interior images in moments.</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">3</div>
+              <h3 className="font-medium mb-2">Edit & Perfect</h3>
+              <p className="text-gray-600 text-sm">Use built-in editing tools to refine each image to your exact specifications—quick, simple, and powerful.</p>
+            </div>
+          </div>
+        </div>
       </main>
       
-      <footer className="py-6 border-t mt-20">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">PicPrompter</span>
+      {/* Footer Section */}
+      <footer className="py-8 border-t mt-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            <div>
+              <h3 className="font-medium mb-4">Quick Links</h3>
+              <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600">
+                <a href="#" className="hover:text-primary">Features</a>
+                <a href="#" className="hover:text-primary">Pricing</a>
+                <a href="#" className="hover:text-primary">About</a>
+                <a href="#" className="hover:text-primary">FAQ</a>
+                <a href="#" className="hover:text-primary">Contact</a>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-4">Contact</h3>
+              <p className="text-sm text-gray-600">Need assistance? Our team is here to help you every step of the way.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-4">Legal</h3>
+              <p className="text-sm text-gray-600">© 2025 Vinteo AI. All rights reserved.</p>
+            </div>
           </div>
-          <p className="text-sm text-gray-500">
-            © {new Date().getFullYear()} PicPrompter
-          </p>
         </div>
       </footer>
 
