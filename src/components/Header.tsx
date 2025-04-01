@@ -4,6 +4,7 @@ import Logo from '@/components/Logo';
 import { UserProfile } from '@/components/UserProfile';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import AuthDialog from '@/components/AuthDialog';
 
 const Header = () => {
   const { isAuthenticated } = useAuth();
@@ -28,6 +29,11 @@ const Header = () => {
           )}
         </div>
       </div>
+      
+      <AuthDialog 
+        isOpen={isAuthDialogOpen} 
+        onOpenChange={setIsAuthDialogOpen}
+      />
     </header>
   );
 };
