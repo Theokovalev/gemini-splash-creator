@@ -1,5 +1,6 @@
 
 import { toast } from "sonner";
+import { uploadGeneratedImage } from "./supabaseService";
 
 // Using the provided API key
 const API_KEY = "AIzaSyDKZrklTOLbGfsCvY_77vToxsD__N_uXXk";
@@ -25,10 +26,11 @@ export async function generateImage(prompt: string, referenceImage?: string): Pr
     
     // Use a more forceful, image-focused prompt with clearer instructions
     requestBody.contents[0].parts.push({ 
-      text: `Create a high-resolution interior design image of: ${prompt}. 
-IMPORTANT: DO NOT RETURN TEXT. ONLY RETURN AN IMAGE.
-CREATE A PHOTOREALISTIC IMAGE OF THE DESCRIBED INTERIOR DESIGN.
-The image must be a high-quality interior design visualization.` 
+      text: `Generate a photorealistic interior design image of: ${prompt}. 
+IMPORTANT: I NEED AN IMAGE ONLY, NOT TEXT.
+GENERATE A HIGH-QUALITY INTERIOR DESIGN VISUALIZATION.
+The output must be a photorealistic interior design.
+DO NOT INCLUDE ANY TEXT OR WATERMARKS IN THE IMAGE.` 
     });
     
     // If reference image is provided, add it to the request
@@ -106,7 +108,22 @@ The image must be a high-quality interior design visualization.`
       for (const part of data.candidates[0].content.parts) {
         if (part.inlineData) {
           // Convert base64 to a data URL that can be displayed in an image tag
-          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          const imageDataUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          
+          // Save the generated image to Supabase storage (but don't block on it)
+          try {
+            // Store the image in Supabase and get a permanent URL
+            const publicUrl = await uploadGeneratedImage(imageDataUrl, prompt);
+            if (publicUrl) {
+              return publicUrl; // Return the Supabase public URL
+            }
+          } catch (storageError) {
+            console.error("Failed to store image in Supabase:", storageError);
+            // Fall back to using the data URL directly
+          }
+          
+          // If storage failed or isn't available, return the data URL
+          return imageDataUrl;
         }
       }
       

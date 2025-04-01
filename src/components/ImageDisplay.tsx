@@ -54,7 +54,7 @@ const ImageDisplay = ({ imageUrl, isGenerating, onDownload, onRetry, error }: Im
               onClick={onRetry} 
               variant="outline" 
               className="mt-2 text-sm"
-              size="sm"a
+              size="sm"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Try Again
