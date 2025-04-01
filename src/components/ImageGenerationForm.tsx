@@ -28,9 +28,10 @@ const ImageGenerationForm = ({
     }
 
     try {
+      console.log("Submitting prompt:", prompt);
       await onGenerateImage(prompt);
     } catch (error) {
-      console.error('Error generating image:', error);
+      console.error('Error in form submission:', error);
       toast.error('Failed to generate image. Please try again.');
     }
   };

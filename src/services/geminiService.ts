@@ -5,18 +5,24 @@ const API_KEY = "AIzaSyDKZrklTOLbGfsCvY_77vToxsD__N_uXXk";
 
 export async function generateImage(prompt: string): Promise<string> {
   try {
-    // Use the correct Gemini API endpoint for image generation
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${API_KEY}`, {
+    console.log("Generating image with prompt:", prompt);
+    
+    // Use the correct endpoint for image generation
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-vision:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         contents: [{
-          parts: [{ text: prompt }]
+          parts: [{ text: `Create a photorealistic interior design image of: ${prompt}. Make it look like a professional interior photography for furniture marketing.` }]
         }],
-        config: {
-          responseModalities: ["Text", "Image"]
+        // Setting proper generation parameters
+        generationConfig: {
+          temperature: 0.4,
+          topP: 0.95,
+          topK: 0,
+          maxOutputTokens: 8192,
         }
       })
     });
@@ -45,31 +51,19 @@ export async function generateImage(prompt: string): Promise<string> {
         }
       }
       
-      // If we couldn't find an image in the response, throw an error
       throw new Error("No image found in the response");
     } catch (extractError) {
       console.error("Error extracting image from response:", extractError);
-      console.log("Full response:", JSON.stringify(data, null, 2));
-      
-      // Fallback to placeholder images if there's an error parsing the response
-      const placeholderImages = [
-        "https://picsum.photos/seed/img1/800/800",
-        "https://picsum.photos/seed/img2/800/800",
-        "https://picsum.photos/seed/img3/800/800",
-        "https://picsum.photos/seed/img4/800/800"
-      ];
-      
-      const randomImage = placeholderImages[Math.floor(Math.random() * placeholderImages.length)];
-      toast.warning("Couldn't generate image, using placeholder instead");
-      return randomImage;
+      console.log("Full response structure:", JSON.stringify(data, null, 2));
+      throw new Error("Failed to extract image from API response");
     }
     
   } catch (error) {
     console.error("Error generating image:", error);
-    toast.error("Failed to generate image. Please try again.");
+    toast.error(`Failed to generate image: ${error.message || "Unknown error"}`);
     
-    // Return a placeholder image in case of error
-    return "https://picsum.photos/seed/error/800/800";
+    // Return a placeholder interior design image in case of error
+    return "https://picsum.photos/seed/interior/800/800";
   }
 }
 
