@@ -5,15 +5,19 @@ import DropZone from '@/components/DropZone';
 import FeatureCard from '@/components/FeatureCard';
 import ImageGenerationForm from '@/components/ImageGenerationForm';
 import ImageDisplay from '@/components/ImageDisplay';
+import AuthDialog from '@/components/AuthDialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { generateImage, downloadImage } from '@/services/geminiService';
 import { toast } from "sonner";
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState('upload');
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const handleFileSelect = (file: File) => {
     const url = URL.createObjectURL(file);
@@ -40,6 +44,18 @@ const Index = () => {
     }
   };
 
+  const handleUploadClick = () => {
+    if (!isAuthenticated) {
+      setIsAuthDialogOpen(true);
+    } else {
+      setActiveTab('upload');
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setActiveTab('upload');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -57,7 +73,7 @@ const Index = () => {
           <div className="flex flex-wrap justify-center gap-3 mt-8">
             <Button 
               className="flex items-center gap-2"
-              onClick={() => setActiveTab('upload')}
+              onClick={handleUploadClick}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 14V18C21 19.1046 20.1046 20 19 20H5C3.89543 20 3 19.1046 3 18V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -178,6 +194,12 @@ const Index = () => {
           </p>
         </div>
       </footer>
+
+      <AuthDialog 
+        isOpen={isAuthDialogOpen} 
+        onOpenChange={setIsAuthDialogOpen}
+        onSuccess={handleAuthSuccess}
+      />
     </div>
   );
 };
