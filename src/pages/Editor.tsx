@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, History, Send, CheckCircle, RotateCcw, Share, Download, Clock } from 'lucide-react';
@@ -8,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
-import { downloadImage, editImage } from '@/services/geminiService';
+import { downloadImage, generateImage } from '@/services/geminiService';
 import ImageGenerationForm from '@/components/ImageGenerationForm';
 
 const Editor = () => {
@@ -58,34 +57,30 @@ const Editor = () => {
       return;
     }
     
-    if (!imageUrl) {
-      toast.error('No image to edit');
-      return;
-    }
-    
     setIsProcessing(true);
     setShowProcessingOverlay(true);
     
     try {
-      // Call the Gemini API to edit the image
-      const editedImageUrl = await editImage(imageUrl, prompt);
+      console.log("Generating image with prompt:", prompt);
+      // Call the Gemini API to generate a new image
+      const generatedImageUrl = await generateImage(prompt);
       
       // Add the new version to history
       const newVersion = {
         id: (editHistory.length + 1).toString(),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         description: prompt,
-        thumbnail: editedImageUrl
+        thumbnail: generatedImageUrl
       };
       
       setEditHistory([...editHistory, newVersion]);
       setCurrentVersion(editHistory.length);
-      setImageUrl(editedImageUrl);
+      setImageUrl(generatedImageUrl);
       
-      toast.success('Image edited successfully');
+      toast.success('Image generated successfully');
     } catch (error) {
-      console.error('Error editing image:', error);
-      toast.error('Failed to edit image. Please try again.');
+      console.error('Error generating image:', error);
+      toast.error('Failed to generate image. Please try again.');
     } finally {
       setIsProcessing(false);
       setShowProcessingOverlay(false);
@@ -109,7 +104,7 @@ const Editor = () => {
 
   const handleDownloadImage = () => {
     if (imageUrl) {
-      downloadImage(imageUrl, `edited-image-${Date.now()}.png`);
+      downloadImage(imageUrl, `generated-image-${Date.now()}.png`);
     } else {
       toast.error('No image to download');
     }
@@ -140,7 +135,7 @@ const Editor = () => {
           <div className="flex-1 flex flex-col">
             <div className="mb-4 flex items-center">
               <div className="bg-blue-100 text-blue-800 py-1 px-3 rounded-full text-xs font-medium flex items-center">
-                <span className="mr-1">AI Edited</span>
+                <span className="mr-1">AI Generated</span>
               </div>
             </div>
             
@@ -181,6 +176,7 @@ const Editor = () => {
                 placeholder="Describe the interior setting for your furniture - e.g., 'Modern minimalist living room with white walls, wooden floor, and natural light'"
                 buttonText="Generate Interior Design"
                 label="Describe your ideal interior setting"
+                requireAuth={false}
               />
             </div>
             
