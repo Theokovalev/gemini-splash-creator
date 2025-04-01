@@ -21,6 +21,7 @@ const Editor = () => {
   const [showProcessingOverlay, setShowProcessingOverlay] = useState(false);
   const [currentVersion, setCurrentVersion] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastPrompt, setLastPrompt] = useState<string>('');
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -60,6 +61,7 @@ const Editor = () => {
     setIsProcessing(true);
     setShowProcessingOverlay(true);
     setError(null);
+    setLastPrompt(prompt);
     
     try {
       console.log("Generating image with prompt:", prompt);
@@ -89,6 +91,14 @@ const Editor = () => {
     } finally {
       setIsProcessing(false);
       setShowProcessingOverlay(false);
+    }
+  };
+
+  const handleRetry = () => {
+    if (lastPrompt) {
+      handlePromptSubmit(lastPrompt);
+    } else {
+      toast.info('No previous prompt to retry. Please enter a new prompt.');
     }
   };
 
@@ -147,6 +157,7 @@ const Editor = () => {
                 imageUrl={imageUrl}
                 isGenerating={isProcessing}
                 onDownload={handleDownloadImage}
+                onRetry={handleRetry}
                 error={error}
               />
               
@@ -171,7 +182,7 @@ const Editor = () => {
               <ImageGenerationForm 
                 onGenerateImage={handlePromptSubmit}
                 isGenerating={isProcessing}
-                placeholder="Describe the interior setting for your furniture - e.g., 'Modern minimalist living room with white walls, wooden floor, and natural light'"
+                placeholder="Describe the interior setting in detail - e.g., 'Modern minimalist living room with white walls, wooden floor, large windows, and natural light'"
                 buttonText="Generate Interior Design"
                 label="Describe your ideal interior setting"
                 requireAuth={false}

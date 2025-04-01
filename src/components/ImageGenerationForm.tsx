@@ -4,6 +4,8 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
+import { Alert, AlertDescription } from './ui/alert';
+import { HelpCircle } from 'lucide-react';
 
 interface ImageGenerationFormProps {
   onGenerateImage: (prompt: string) => Promise<void>;
@@ -25,13 +27,22 @@ const ImageGenerationForm = ({
   onAuthRequired
 }: ImageGenerationFormProps) => {
   const [prompt, setPrompt] = useState('');
+  const [showHint, setShowHint] = useState(false);
   const { isAuthenticated } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!prompt.trim()) {
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt) {
       toast.error('Please enter a prompt');
+      return;
+    }
+
+    // Show hint for very simple prompts
+    if (trimmedPrompt.split(' ').length < 3 && !showHint) {
+      setShowHint(true);
+      toast.warning('Your prompt is very short. Adding more details will give better results.');
       return;
     }
 
@@ -42,8 +53,9 @@ const ImageGenerationForm = ({
     }
 
     try {
-      console.log("Submitting prompt:", prompt);
-      await onGenerateImage(prompt);
+      console.log("Submitting prompt:", trimmedPrompt);
+      setShowHint(false); // Hide hint when submitting
+      await onGenerateImage(trimmedPrompt);
     } catch (error) {
       console.error('Error in form submission:', error);
       toast.error('Failed to generate image. Please try again.');
@@ -63,6 +75,17 @@ const ImageGenerationForm = ({
           onChange={(e) => setPrompt(e.target.value)}
           className="min-h-24"
         />
+        
+        {showHint && (
+          <Alert className="mt-2 bg-blue-50 border-blue-100">
+            <HelpCircle className="h-4 w-4 text-blue-500" />
+            <AlertDescription className="text-xs text-blue-700">
+              <strong>Tip:</strong> Be specific about colors, materials, style, and lighting. 
+              <br />
+              Example: "A modern Scandinavian living room with light oak floors, white walls, gray sofa, and large windows letting in natural light"
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
       <Button 
         type="submit" 

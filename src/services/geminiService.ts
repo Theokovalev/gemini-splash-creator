@@ -23,13 +23,12 @@ export async function generateImage(prompt: string, referenceImage?: string): Pr
       }
     };
     
-    // Use a more direct, image-focused prompt
+    // Use a more forceful, image-focused prompt with clearer instructions
     requestBody.contents[0].parts.push({ 
-      text: `Generate an image of: ${prompt}. 
-DO NOT DESCRIBE THE IMAGE IN TEXT. 
-CREATE AN IMAGE ONLY. 
-I want to see a high-quality interior design image, photorealistic style.
-This is for interior design visualization.` 
+      text: `Create a high-resolution interior design image of: ${prompt}. 
+IMPORTANT: DO NOT RETURN TEXT. ONLY RETURN AN IMAGE.
+CREATE A PHOTOREALISTIC IMAGE OF THE DESCRIBED INTERIOR DESIGN.
+The image must be a high-quality interior design visualization.` 
     });
     
     // If reference image is provided, add it to the request
@@ -122,12 +121,20 @@ This is for interior design visualization.`
       const textParts = data.candidates[0].content.parts.filter((part: any) => part.text);
       if (textParts.length > 0) {
         console.log("Received text instead of image:", textParts.map((p: any) => p.text).join(' '));
-        throw new Error("The API returned text instead of an image. Please try a different, more specific prompt focused on interior design elements.");
+        throw new Error("The API returned text instead of an image. Please try using more specific interior design terms in your prompt.");
       }
     }
     
+    // This case seems to be happening - empty response with no image
+    if (data.candidates && 
+        data.candidates[0] && 
+        (!data.candidates[0].content || !data.candidates[0].content.parts || data.candidates[0].content.parts.length === 0)) {
+      throw new Error("The API returned an empty response. Please try a more detailed interior design prompt.");
+    }
+    
+    // Log the full response structure for debugging
     console.log("Full response structure:", JSON.stringify(data, null, 2));
-    throw new Error("No image found in the response");
+    throw new Error("No image found in the response. Try a more detailed interior design description.");
     
   } catch (error) {
     console.error("Error generating image:", error);

@@ -30,6 +30,7 @@ const ImageDisplay = ({ imageUrl, isGenerating, onDownload, onRetry, error }: Im
 
   if (error) {
     const isTextResponse = error.includes("text instead of an image");
+    const isEmptyResponse = error.includes("No image found");
     
     return (
       <Card className="relative overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
@@ -38,7 +39,7 @@ const ImageDisplay = ({ imageUrl, isGenerating, onDownload, onRetry, error }: Im
           <p className="font-medium text-red-500">Generation Failed</p>
           <p className="text-gray-500 text-sm">{error}</p>
           
-          {isTextResponse && (
+          {(isTextResponse || isEmptyResponse) && (
             <Alert className="bg-amber-50 border-amber-200 mt-2">
               <HelpCircle className="h-4 w-4 text-amber-500" />
               <AlertTitle>Suggestion</AlertTitle>
@@ -53,7 +54,7 @@ const ImageDisplay = ({ imageUrl, isGenerating, onDownload, onRetry, error }: Im
               onClick={onRetry} 
               variant="outline" 
               className="mt-2 text-sm"
-              size="sm"
+              size="sm"a
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Try Again
