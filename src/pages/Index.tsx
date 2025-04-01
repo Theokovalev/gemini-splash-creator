@@ -267,6 +267,15 @@ const Index = () => {
             </div>
           </div>
         </div>
+        
+        {/* Product Categories Section */}
+        <div className="mb-16">
+          <img 
+            src="/lovable-uploads/7be9e94c-de92-46b2-b8c7-020d63caa3c3.png" 
+            alt="Furniture product categories including dressers, bookcases, sofas, and more" 
+            className="w-full h-auto rounded-lg shadow-md"
+          />
+        </div>
       </main>
       
       {/* Footer Section */}
