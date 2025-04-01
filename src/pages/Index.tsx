@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import DropZone from '@/components/DropZone';
 import FeatureCard from '@/components/FeatureCard';
@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState('upload');
@@ -22,6 +23,15 @@ const Index = () => {
   const handleFileSelect = (file: File) => {
     const url = URL.createObjectURL(file);
     setImageUrl(url);
+    
+    localStorage.setItem('editImage', url);
+    
+    if (isAuthenticated) {
+      toast.success('Image uploaded successfully! Redirecting to editor...');
+      setTimeout(() => {
+        navigate('/editor');
+      }, 1000);
+    }
   };
 
   const handleGenerateImage = async (prompt: string) => {
@@ -29,7 +39,16 @@ const Index = () => {
     try {
       const url = await generateImage(prompt);
       setImageUrl(url);
+      
+      localStorage.setItem('editImage', url);
+      
       toast.success('Image generated successfully!');
+      
+      if (isAuthenticated) {
+        setTimeout(() => {
+          navigate('/editor');
+        }, 1000);
+      }
     } catch (error) {
       console.error('Error generating image:', error);
       toast.error('Failed to generate image. Please try again.');
@@ -54,6 +73,20 @@ const Index = () => {
 
   const handleAuthSuccess = () => {
     setActiveTab('upload');
+  };
+
+  const handleEditClick = () => {
+    if (!imageUrl) {
+      toast.error('Please upload or generate an image first');
+      return;
+    }
+    
+    if (!isAuthenticated) {
+      setIsAuthDialogOpen(true);
+      return;
+    }
+    
+    navigate('/editor');
   };
 
   return (
@@ -99,7 +132,8 @@ const Index = () => {
             <Button 
               variant="outline" 
               className="flex items-center gap-2"
-              onClick={() => toast.info('Editing tools coming soon!')}
+              onClick={handleEditClick}
+              disabled={!imageUrl}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11 4H4C3.44772 4 3 4.44772 3 5V19C3 19.5523 3.44772 20 4 20H18C18.5523 20 19 19.5523 19 19V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
