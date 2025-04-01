@@ -60,7 +60,15 @@ export async function generateImage(prompt: string, referenceImage?: string): Pr
       }
     }
     
-    console.log("Request structure:", JSON.stringify(requestBody, null, 2));
+    console.log("Request structure:", JSON.stringify({
+      ...requestBody,
+      contents: [{
+        ...requestBody.contents[0],
+        parts: requestBody.contents[0].parts.map((part: any) => 
+          part.inlineData ? { inlineData: { mimeType: part.inlineData.mimeType, data: "BASE64_DATA" } } : part
+        )
+      }]
+    }, null, 2));
     
     // Use the correct endpoint for image generation with gemini-2.0-flash-exp-image-generation
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${API_KEY}`, {
@@ -80,27 +88,42 @@ export async function generateImage(prompt: string, referenceImage?: string): Pr
     const data = await response.json();
     console.log("Gemini API response:", data);
     
+    // Handle different response formats
+    if (data.promptFeedback && data.promptFeedback.blockReason) {
+      throw new Error(`Prompt blocked: ${data.promptFeedback.blockReason}`);
+    }
+    
     // Extract the image data from the response
-    try {
-      if (data.candidates && 
-          data.candidates[0] && 
-          data.candidates[0].content && 
-          data.candidates[0].content.parts) {
-        
-        for (const part of data.candidates[0].content.parts) {
-          if (part.inlineData) {
-            // Convert base64 to a data URL that can be displayed in an image tag
-            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-          }
+    if (data.candidates && 
+        data.candidates[0] && 
+        data.candidates[0].content && 
+        data.candidates[0].content.parts) {
+      
+      // First try to find an inlineData part which contains the image
+      for (const part of data.candidates[0].content.parts) {
+        if (part.inlineData) {
+          // Convert base64 to a data URL that can be displayed in an image tag
+          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         }
       }
       
-      throw new Error("No image found in the response");
-    } catch (extractError) {
-      console.error("Error extracting image from response:", extractError);
-      console.log("Full response structure:", JSON.stringify(data, null, 2));
-      throw new Error("Failed to extract image from API response");
+      // Some Gemini responses include an image URL directly
+      for (const part of data.candidates[0].content.parts) {
+        if (part.fileData && part.fileData.mimeType && part.fileData.mimeType.startsWith('image/')) {
+          return part.fileData.fileUri;
+        }
+      }
+      
+      // If we've generated text and no image, we need to try again with clearer instructions
+      const textParts = data.candidates[0].content.parts.filter((part: any) => part.text);
+      if (textParts.length > 0) {
+        console.log("Received text instead of image:", textParts.map((p: any) => p.text).join(' '));
+        throw new Error("The API returned text instead of an image. Please try a different prompt.");
+      }
     }
+    
+    console.log("Full response structure:", JSON.stringify(data, null, 2));
+    throw new Error("No image found in the response");
     
   } catch (error) {
     console.error("Error generating image:", error);
@@ -187,7 +210,16 @@ export async function editImage(imageUrl: string, editPrompt: string): Promise<s
     };
     
     console.log("Edit request structure:", JSON.stringify(
-      {...requestBody, contents: [{...requestBody.contents[0], parts: [{text: requestBody.contents[0].parts[0].text}, {inlineData: {mimeType: requestBody.contents[0].parts[1].inlineData.mimeType, data: "BASE64_DATA_TRUNCATED"}}]}]}, 
+      {
+        ...requestBody, 
+        contents: [{
+          ...requestBody.contents[0], 
+          parts: [
+            {text: requestBody.contents[0].parts[0].text}, 
+            {inlineData: {mimeType: requestBody.contents[0].parts[1].inlineData.mimeType, data: "BASE64_DATA_TRUNCATED"}}
+          ]
+        }]
+      }, 
       null, 2
     ));
 
@@ -209,33 +241,46 @@ export async function editImage(imageUrl: string, editPrompt: string): Promise<s
     const data = await apiResponse.json();
     console.log("Gemini API edit response:", data);
     
+    // Handle different response formats
+    if (data.promptFeedback && data.promptFeedback.blockReason) {
+      throw new Error(`Prompt blocked: ${data.promptFeedback.blockReason}`);
+    }
+    
     // Extract the image data from the response
-    try {
-      if (data.candidates && 
-          data.candidates[0] && 
-          data.candidates[0].content && 
-          data.candidates[0].content.parts) {
-        
-        for (const part of data.candidates[0].content.parts) {
-          if (part.inlineData) {
-            // Convert base64 to a data URL that can be displayed in an image tag
-            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-          }
+    if (data.candidates && 
+        data.candidates[0] && 
+        data.candidates[0].content && 
+        data.candidates[0].content.parts) {
+      
+      // First try to find an inlineData part which contains the image
+      for (const part of data.candidates[0].content.parts) {
+        if (part.inlineData) {
+          // Convert base64 to a data URL that can be displayed in an image tag
+          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         }
       }
       
-      // If we couldn't find an image in the response, throw an error
-      throw new Error("No edited image found in the response");
-    } catch (extractError) {
-      console.error("Error extracting edited image from response:", extractError);
-      console.log("Full response:", JSON.stringify(data, null, 2));
-      toast.warning("Couldn't edit image, returning original image");
-      return imageUrl;
+      // Some Gemini responses include an image URL directly
+      for (const part of data.candidates[0].content.parts) {
+        if (part.fileData && part.fileData.mimeType && part.fileData.mimeType.startsWith('image/')) {
+          return part.fileData.fileUri;
+        }
+      }
+      
+      // If we've generated text and no image, we need to try again with clearer instructions
+      const textParts = data.candidates[0].content.parts.filter((part: any) => part.text);
+      if (textParts.length > 0) {
+        console.log("Received text instead of image:", textParts.map((p: any) => p.text).join(' '));
+        throw new Error("The API returned text instead of an image. Please try a different prompt.");
+      }
     }
+    
+    console.log("Full edit response:", JSON.stringify(data, null, 2));
+    throw new Error("No edited image found in the response");
     
   } catch (error) {
     console.error("Error editing image:", error);
-    toast.error("Failed to edit image. Please try again.");
+    toast.error(`Failed to edit image: ${error.message || "Unknown error"}`);
     
     // Return the original image in case of error
     return imageUrl;

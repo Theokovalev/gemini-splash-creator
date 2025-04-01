@@ -2,20 +2,38 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
+import { AlertCircle } from 'lucide-react';
 
 interface ImageDisplayProps {
   imageUrl: string | null;
   isGenerating: boolean;
   onDownload: () => void;
+  error?: string | null;
 }
 
-const ImageDisplay = ({ imageUrl, isGenerating, onDownload }: ImageDisplayProps) => {
+const ImageDisplay = ({ imageUrl, isGenerating, onDownload, error }: ImageDisplayProps) => {
   if (isGenerating) {
     return (
       <Card className="relative overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           <p className="text-gray-500 font-medium">Generating your image...</p>
+          <p className="text-gray-400 text-sm max-w-md text-center">
+            This may take up to 30 seconds. The AI is creating a custom interior design image for you.
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="relative overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
+        <div className="flex flex-col items-center gap-4 text-center p-6">
+          <AlertCircle className="h-12 w-12 text-red-500" />
+          <p className="font-medium text-red-500">Generation Failed</p>
+          <p className="text-gray-500 text-sm max-w-md">{error}</p>
+          <p className="text-gray-400 text-xs">Try with a different, more detailed prompt or check your connection.</p>
         </div>
       </Card>
     );
@@ -53,6 +71,12 @@ const ImageDisplay = ({ imageUrl, isGenerating, onDownload }: ImageDisplayProps)
         src={imageUrl} 
         alt="Generated or uploaded image" 
         className="w-full h-auto object-contain"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          target.onerror = null;
+          target.src = '/placeholder.svg';
+          console.error('Image failed to load:', imageUrl);
+        }}
       />
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
         <div className="flex justify-end gap-2">

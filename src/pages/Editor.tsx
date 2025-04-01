@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, History, Send, CheckCircle, RotateCcw, Share, Download, Clock } from 'lucide-react';
@@ -9,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { downloadImage, generateImage } from '@/services/geminiService';
 import ImageGenerationForm from '@/components/ImageGenerationForm';
+import ImageDisplay from '@/components/ImageDisplay';
 
 const Editor = () => {
   const navigate = useNavigate();
@@ -18,6 +20,7 @@ const Editor = () => {
   const [editHistory, setEditHistory] = useState<{id: string, timestamp: string, description: string, thumbnail: string}[]>([]);
   const [showProcessingOverlay, setShowProcessingOverlay] = useState(false);
   const [currentVersion, setCurrentVersion] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -56,26 +59,33 @@ const Editor = () => {
     
     setIsProcessing(true);
     setShowProcessingOverlay(true);
+    setError(null);
     
     try {
       console.log("Generating image with prompt:", prompt);
-      const generatedImageUrl = await generateImage(prompt, imageUrl);
+      const generatedImageUrl = await generateImage(prompt, imageUrl || undefined);
       
-      const newVersion = {
-        id: (editHistory.length + 1).toString(),
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        description: prompt,
-        thumbnail: generatedImageUrl
-      };
-      
-      setEditHistory([...editHistory, newVersion]);
-      setCurrentVersion(editHistory.length);
-      setImageUrl(generatedImageUrl);
-      
-      toast.success('Image generated successfully');
+      if (generatedImageUrl) {
+        const newVersion = {
+          id: (editHistory.length + 1).toString(),
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          description: prompt,
+          thumbnail: generatedImageUrl
+        };
+        
+        setEditHistory([...editHistory, newVersion]);
+        setCurrentVersion(editHistory.length);
+        setImageUrl(generatedImageUrl);
+        
+        toast.success('Image generated successfully');
+      } else {
+        setError('Failed to generate image - no image was returned from the API');
+        toast.error('Failed to generate image - no image was returned from the API');
+      }
     } catch (error) {
       console.error('Error generating image:', error);
-      toast.error('Failed to generate image. Please try again.');
+      setError(error instanceof Error ? error.message : 'Unknown error occurred');
+      toast.error(`Failed to generate image: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsProcessing(false);
       setShowProcessingOverlay(false);
@@ -86,6 +96,7 @@ const Editor = () => {
     setCurrentVersion(index);
     if (editHistory[index]) {
       setImageUrl(editHistory[index].thumbnail);
+      setError(null);
     }
   };
 
@@ -93,6 +104,7 @@ const Editor = () => {
     if (editHistory.length > 0) {
       setCurrentVersion(0);
       setImageUrl(editHistory[0].thumbnail);
+      setError(null);
     }
   };
 
@@ -130,18 +142,13 @@ const Editor = () => {
               </div>
             </div>
             
-            <Card className="flex-1 flex items-center justify-center overflow-hidden bg-white relative">
-              {imageUrl ? (
-                <img 
-                  src={imageUrl} 
-                  alt="Edited" 
-                  className="max-w-full max-h-full object-contain"
-                />
-              ) : (
-                <div className="text-center p-8">
-                  <p>No image uploaded. Go back to upload an image.</p>
-                </div>
-              )}
+            <div className="flex-1 relative">
+              <ImageDisplay 
+                imageUrl={imageUrl}
+                isGenerating={isProcessing}
+                onDownload={handleDownloadImage}
+                error={error}
+              />
               
               {showProcessingOverlay && (
                 <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center">
@@ -157,7 +164,7 @@ const Editor = () => {
                   </div>
                 </div>
               )}
-            </Card>
+            </div>
             
             <div className="mt-6 px-4 py-6 bg-white rounded-lg border">
               <h3 className="font-medium mb-4">Generate interior design with your furniture</h3>
@@ -183,17 +190,18 @@ const Editor = () => {
                   variant="outline" 
                   className="flex items-center gap-2"
                   onClick={handleDownloadImage}
+                  disabled={!imageUrl || isProcessing}
                 >
                   <Download className="h-5 w-5" />
                   Download
                 </Button>
                 
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button variant="outline" className="flex items-center gap-2" disabled={!imageUrl || isProcessing}>
                   <Share className="h-5 w-5" />
                   Share
                 </Button>
                 
-                <Button className="flex items-center gap-2">
+                <Button className="flex items-center gap-2" disabled={!imageUrl || isProcessing}>
                   <CheckCircle className="h-5 w-5" />
                   Finalize and save
                 </Button>
