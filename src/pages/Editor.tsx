@@ -20,18 +20,15 @@ const Editor = () => {
   const [currentVersion, setCurrentVersion] = useState<number | null>(null);
   
   useEffect(() => {
-    // Check if the user is authenticated
     if (!isAuthenticated) {
       toast.error('Please login to access the editor');
       navigate('/');
       return;
     }
     
-    // Check if there's an image in localStorage (from previous upload)
     const storedImage = localStorage.getItem('editImage');
     if (storedImage) {
       setImageUrl(storedImage);
-      // Add original image to edit history
       setEditHistory([
         {
           id: '1',
@@ -62,10 +59,8 @@ const Editor = () => {
     
     try {
       console.log("Generating image with prompt:", prompt);
-      // Call the Gemini API to generate a new image
-      const generatedImageUrl = await generateImage(prompt);
+      const generatedImageUrl = await generateImage(prompt, imageUrl);
       
-      // Add the new version to history
       const newVersion = {
         id: (editHistory.length + 1).toString(),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -89,7 +84,6 @@ const Editor = () => {
 
   const handleVersionSelect = (index: number) => {
     setCurrentVersion(index);
-    // Load the selected version's image
     if (editHistory[index]) {
       setImageUrl(editHistory[index].thumbnail);
     }
@@ -115,7 +109,6 @@ const Editor = () => {
       <Header />
       
       <main className="flex-1 flex">
-        {/* Left sidebar with back button */}
         <div className="w-16 border-r bg-white flex-shrink-0">
           <div className="p-4">
             <Button 
@@ -129,9 +122,7 @@ const Editor = () => {
           </div>
         </div>
         
-        {/* Main content area */}
         <div className="flex-1 p-6 flex">
-          {/* Image display area */}
           <div className="flex-1 flex flex-col">
             <div className="mb-4 flex items-center">
               <div className="bg-blue-100 text-blue-800 py-1 px-3 rounded-full text-xs font-medium flex items-center">
@@ -210,7 +201,6 @@ const Editor = () => {
             </div>
           </div>
           
-          {/* Right sidebar with edit history */}
           <div className="w-72 ml-6">
             <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
               <div className="flex items-center mb-4">

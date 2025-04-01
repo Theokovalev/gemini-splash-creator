@@ -238,7 +238,7 @@ const Index = () => {
             description="Reduce overhead and turnaround time by creating visuals ready for e-commerce and marketing."
             icon={
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H18C18.5523 20 19 19.5523 19 19V12" />
               </svg>
             }
           />
