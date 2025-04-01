@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 // Using the provided API key
@@ -108,4 +107,106 @@ export async function downloadImage(imageUrl: string, filename = "generated-imag
     console.error("Error downloading image:", error);
     toast.error("Failed to download image. Please try again.");
   }
+}
+
+export async function editImage(imageUrl: string, editPrompt: string): Promise<string> {
+  try {
+    // Convert image URL to base64 if it's not already a data URL
+    let base64Image: string;
+    
+    if (imageUrl.startsWith('data:')) {
+      // Already a data URL, extract the base64 portion
+      base64Image = imageUrl.split(',')[1];
+    } else {
+      // Fetch the image and convert to base64
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      base64Image = await blobToBase64(blob);
+    }
+
+    // Determine mime type from the data URL or default to image/jpeg
+    const mimeType = imageUrl.startsWith('data:') 
+      ? imageUrl.split(';')[0].split(':')[1] 
+      : 'image/jpeg';
+
+    // Call the Gemini API for image editing
+    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [
+          { text: editPrompt },
+          {
+            inlineData: {
+              mimeType: mimeType,
+              data: base64Image
+            }
+          }
+        ],
+        config: {
+          responseModalities: ["Text", "Image"]
+        }
+      })
+    });
+
+    if (!apiResponse.ok) {
+      const errorData = await apiResponse.json();
+      console.error("Gemini API error:", errorData);
+      throw new Error(`API error: ${apiResponse.status}`);
+    }
+
+    const data = await apiResponse.json();
+    console.log("Gemini API edit response:", data);
+    
+    // Extract the image data from the response
+    try {
+      if (data.candidates && 
+          data.candidates[0] && 
+          data.candidates[0].content && 
+          data.candidates[0].content.parts) {
+        
+        for (const part of data.candidates[0].content.parts) {
+          if (part.inlineData) {
+            // Convert base64 to a data URL that can be displayed in an image tag
+            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          }
+        }
+      }
+      
+      // If we couldn't find an image in the response, throw an error
+      throw new Error("No edited image found in the response");
+    } catch (extractError) {
+      console.error("Error extracting edited image from response:", extractError);
+      console.log("Full response:", JSON.stringify(data, null, 2));
+      toast.warning("Couldn't edit image, returning original image");
+      return imageUrl;
+    }
+    
+  } catch (error) {
+    console.error("Error editing image:", error);
+    toast.error("Failed to edit image. Please try again.");
+    
+    // Return the original image in case of error
+    return imageUrl;
+  }
+}
+
+// Helper function to convert Blob to base64
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        // Extract just the base64 part without the data URL prefix
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      } else {
+        reject(new Error('Failed to convert to base64'));
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }

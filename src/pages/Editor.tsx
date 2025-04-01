@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, History, Send, CheckCircle, RotateCcw, Share, Download, Clock } from 'lucide-react';
@@ -8,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
+import { downloadImage, editImage } from '@/services/geminiService';
 
 const Editor = () => {
   const navigate = useNavigate();
@@ -34,11 +34,12 @@ const Editor = () => {
       setEditHistory([
         {
           id: '1',
-          timestamp: '10:43',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           description: 'Original image',
           thumbnail: storedImage
         }
       ]);
+      setCurrentVersion(0);
     }
   }, [isAuthenticated, navigate]);
 
@@ -46,45 +47,69 @@ const Editor = () => {
     navigate('/');
   };
 
-  const handlePromptSubmit = (e: React.FormEvent) => {
+  const handlePromptSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editPrompt.trim()) {
       toast.error('Please enter a prompt to edit the image');
       return;
     }
     
+    if (!imageUrl) {
+      toast.error('No image to edit');
+      return;
+    }
+    
     setIsProcessing(true);
     setShowProcessingOverlay(true);
     
-    // Simulate API call to process the image
-    setTimeout(() => {
-      setIsProcessing(false);
-      setShowProcessingOverlay(false);
+    try {
+      // Call the Gemini API to edit the image
+      const editedImageUrl = await editImage(imageUrl, editPrompt);
       
       // Add the new version to history
       const newVersion = {
         id: (editHistory.length + 1).toString(),
-        timestamp: `10:${Math.floor(55 + Math.random() * 5)}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         description: editPrompt,
-        thumbnail: imageUrl || ''
+        thumbnail: editedImageUrl
       };
       
       setEditHistory([...editHistory, newVersion]);
-      setCurrentVersion(editHistory.length + 1);
+      setCurrentVersion(editHistory.length);
+      setImageUrl(editedImageUrl);
       
       setEditPrompt('');
       toast.success('Image edited successfully');
-    }, 3000);
+    } catch (error) {
+      console.error('Error editing image:', error);
+      toast.error('Failed to edit image. Please try again.');
+    } finally {
+      setIsProcessing(false);
+      setShowProcessingOverlay(false);
+    }
   };
 
   const handleVersionSelect = (index: number) => {
     setCurrentVersion(index);
-    // In a real app, we would load the selected version's image
+    // Load the selected version's image
+    if (editHistory[index]) {
+      setImageUrl(editHistory[index].thumbnail);
+    }
   };
 
   const handleViewOriginal = () => {
-    setCurrentVersion(0);
-    // In a real app, we would load the original image
+    if (editHistory.length > 0) {
+      setCurrentVersion(0);
+      setImageUrl(editHistory[0].thumbnail);
+    }
+  };
+
+  const handleDownloadImage = () => {
+    if (imageUrl) {
+      downloadImage(imageUrl, `edited-image-${Date.now()}.png`);
+    } else {
+      toast.error('No image to download');
+    }
   };
 
   return (
@@ -182,7 +207,11 @@ const Editor = () => {
               </div>
               
               <div className="flex items-center gap-2">
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={handleDownloadImage}
+                >
                   <Download className="h-5 w-5" />
                   Download
                 </Button>
