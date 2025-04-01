@@ -48,7 +48,7 @@ const Logo = ({ size = 'md' }: LogoProps) => {
           />
         </svg>
       </div>
-      <span className="font-bold text-lg">PicPrompter</span>
+      <span className="font-bold text-lg">Vinteo AI</span>
     </div>
   );
 };

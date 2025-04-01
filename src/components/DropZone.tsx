@@ -95,7 +95,7 @@ const DropZone = ({ onFileSelect }: DropZoneProps) => {
           <path d="M12 3L12 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           <path d="M8 7L12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        Upload Image
+        Upload Your Product
       </Button>
       
       <p className="text-xs text-gray-500 mt-4">Supported formats: JPEG, PNG, and more!</p>

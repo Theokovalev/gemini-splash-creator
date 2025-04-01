@@ -115,7 +115,7 @@ const Index = () => {
                 <path d="M12 3L12 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M8 7L12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Upload Reference
+              Upload
             </Button>
             
             <Button 
@@ -241,20 +241,20 @@ const Index = () => {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">1</div>
-              <h3 className="font-medium mb-2">Describe Your Vision</h3>
-              <p className="text-gray-600 text-sm">Enter your detailed interior concept using our easy-to-use prompt tool. Or use templates.</p>
+              <h3 className="font-medium mb-2">Upload Image of Your Furniture</h3>
+              <p className="text-gray-600 text-sm">It could be an image from a factory or one made with your phone.</p>
             </div>
             
             <div className="text-center">
               <div className="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">2</div>
-              <h3 className="font-medium mb-2">Instant Image Creation</h3>
+              <h3 className="font-medium mb-2">Describe Your Perfect Interior</h3>
               <p className="text-gray-600 text-sm">Our AI processes your description to deliver a suite of tailored interior images in moments.</p>
             </div>
             
             <div className="text-center">
               <div className="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">3</div>
-              <h3 className="font-medium mb-2">Edit & Perfect</h3>
-              <p className="text-gray-600 text-sm">Use built-in editing tools to refine each image to your exact specifications—quick, simple, and powerful.</p>
+              <h3 className="font-medium mb-2">Edit & Download</h3>
+              <p className="text-gray-600 text-sm">Describe your edits to change colour, lighting or angles. Hit dowload to get your image. Feel free to use it on your website or marketplaces.</p>
             </div>
           </div>
         </div>
