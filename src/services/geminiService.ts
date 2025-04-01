@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 
 // Using the provided API key
@@ -7,8 +8,8 @@ export async function generateImage(prompt: string): Promise<string> {
   try {
     console.log("Generating image with prompt:", prompt);
     
-    // Use the correct endpoint for image generation
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`, {
+    // Use the correct endpoint for image generation with gemini-2.0-flash-exp-image-generation
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -121,7 +122,7 @@ export async function editImage(imageUrl: string, editPrompt: string): Promise<s
       ? imageUrl.split(';')[0].split(':')[1] 
       : 'image/jpeg';
 
-    // Call the Gemini API for image editing
+    // Call the Gemini API for image editing with the correct model
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: {
@@ -129,16 +130,23 @@ export async function editImage(imageUrl: string, editPrompt: string): Promise<s
       },
       body: JSON.stringify({
         contents: [
-          { text: editPrompt },
-          {
-            inlineData: {
-              mimeType: mimeType,
-              data: base64Image
-            }
+          { 
+            parts: [
+              { text: editPrompt },
+              {
+                inlineData: {
+                  mimeType: mimeType,
+                  data: base64Image
+                }
+              }
+            ]
           }
         ],
-        config: {
-          responseModalities: ["Text", "Image"]
+        generationConfig: {
+          temperature: 0.4,
+          topP: 0.95,
+          topK: 0,
+          maxOutputTokens: 8192,
         }
       })
     });
