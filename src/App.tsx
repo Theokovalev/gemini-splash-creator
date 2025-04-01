@@ -14,7 +14,10 @@ const queryClient = new QueryClient();
 const App = () => {
   // Initialize Supabase storage when the app starts
   useEffect(() => {
-    setupStorageBucket().catch(console.error);
+    // Set up the Supabase storage bucket
+    setupStorageBucket().catch(error => {
+      console.error("Failed to set up storage bucket:", error);
+    });
   }, []);
 
   return (

@@ -30,8 +30,7 @@ export async function setupStorageBucket() {
 // Upload a base64 image to Supabase storage
 export async function uploadGeneratedImage(base64Image: string, prompt: string): Promise<string | null> {
   try {
-    // Ensure the bucket exists
-    await setupStorageBucket();
+    console.log('Starting image upload to Supabase storage');
     
     // Convert base64 to a Blob
     const base64Response = await fetch(base64Image);
@@ -42,6 +41,8 @@ export async function uploadGeneratedImage(base64Image: string, prompt: string):
     const fileName = `${uuidv4()}.${fileExt}`;
     const filePath = `${fileName}`;
     
+    console.log(`Uploading image as ${filePath} to bucket ${BUCKET_NAME}`);
+    
     // Upload the image
     const { error: uploadError, data } = await supabase.storage
       .from(BUCKET_NAME)
@@ -50,17 +51,20 @@ export async function uploadGeneratedImage(base64Image: string, prompt: string):
         upsert: true,
       });
     
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('Supabase upload error:', uploadError);
+      throw uploadError;
+    }
     
     // Get the public URL
     const { data: { publicUrl } } = supabase.storage
       .from(BUCKET_NAME)
       .getPublicUrl(filePath);
     
-    console.log('Image uploaded successfully:', publicUrl);
+    console.log('Image uploaded successfully, public URL:', publicUrl);
     return publicUrl;
   } catch (error) {
-    console.error('Error uploading image:', error);
+    console.error('Error uploading image to Supabase:', error);
     toast.error('Failed to store the generated image');
     return null;
   }

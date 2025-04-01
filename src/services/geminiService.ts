@@ -17,8 +17,8 @@ export async function generateImage(prompt: string, referenceImage?: string): Pr
       }],
       // Setting proper generation parameters
       generationConfig: {
-        temperature: 0.4,
-        topP: 0.95,
+        temperature: 0.2, // Lower temperature for more consistent results
+        topP: 0.8,
         topK: 0,
         maxOutputTokens: 8192,
       }
@@ -26,11 +26,12 @@ export async function generateImage(prompt: string, referenceImage?: string): Pr
     
     // Use a more forceful, image-focused prompt with clearer instructions
     requestBody.contents[0].parts.push({ 
-      text: `Generate a photorealistic interior design image of: ${prompt}. 
-IMPORTANT: I NEED AN IMAGE ONLY, NOT TEXT.
+      text: `Generate a PHOTOREALISTIC interior design image of: ${prompt}. 
+I NEED AN IMAGE ONLY, DO NOT RETURN ANY TEXT.
 GENERATE A HIGH-QUALITY INTERIOR DESIGN VISUALIZATION.
-The output must be a photorealistic interior design.
-DO NOT INCLUDE ANY TEXT OR WATERMARKS IN THE IMAGE.` 
+The output must be a photorealistic interior design image ONLY.
+DO NOT INCLUDE ANY TEXT OR WATERMARKS IN THE IMAGE.
+USE REALISTIC LIGHTING, SHADOWS, AND TEXTURES FOR PHOTOREALISM.` 
     });
     
     // If reference image is provided, add it to the request
@@ -91,7 +92,7 @@ DO NOT INCLUDE ANY TEXT OR WATERMARKS IN THE IMAGE.`
     }
 
     const data = await response.json();
-    console.log("Gemini API response:", data);
+    console.log("Gemini API response received:", data);
     
     // Handle different response formats
     if (data.promptFeedback && data.promptFeedback.blockReason) {
@@ -109,27 +110,31 @@ DO NOT INCLUDE ANY TEXT OR WATERMARKS IN THE IMAGE.`
         if (part.inlineData) {
           // Convert base64 to a data URL that can be displayed in an image tag
           const imageDataUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          console.log("Image found in the response, converting to data URL");
           
-          // Save the generated image to Supabase storage (but don't block on it)
           try {
             // Store the image in Supabase and get a permanent URL
+            console.log("Uploading image to Supabase storage");
             const publicUrl = await uploadGeneratedImage(imageDataUrl, prompt);
             if (publicUrl) {
+              console.log("Image uploaded to Supabase:", publicUrl);
               return publicUrl; // Return the Supabase public URL
+            } else {
+              console.warn("Failed to upload to Supabase, falling back to data URL");
+              return imageDataUrl; // Fallback to using the data URL
             }
           } catch (storageError) {
             console.error("Failed to store image in Supabase:", storageError);
             // Fall back to using the data URL directly
+            return imageDataUrl;
           }
-          
-          // If storage failed or isn't available, return the data URL
-          return imageDataUrl;
         }
       }
       
       // Some Gemini responses include an image URL directly
       for (const part of data.candidates[0].content.parts) {
         if (part.fileData && part.fileData.mimeType && part.fileData.mimeType.startsWith('image/')) {
+          console.log("Image URL found directly in response");
           return part.fileData.fileUri;
         }
       }
