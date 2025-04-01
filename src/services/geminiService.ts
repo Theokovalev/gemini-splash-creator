@@ -1,37 +1,36 @@
+
 import { toast } from "sonner";
 
 // Using the provided API key
 const API_KEY = "AIzaSyDKZrklTOLbGfsCvY_77vToxsD__N_uXXk";
 
-interface GenerateImageResponse {
-  imageUrl: string;
-}
-
 export async function generateImage(prompt: string): Promise<string> {
   try {
-    // Real API call to Gemini
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent', {
+    // Correct Gemini API call using gemini-2.0-flash model
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        contents: [{ text: prompt }],
-        generationConfig: {
-          temperature: 0.4,
-          topK: 32,
-          topP: 1,
-          maxOutputTokens: 4096,
-        }
+        contents: [{
+          parts: [{ text: prompt }]
+        }]
       })
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Gemini API error:", errorData);
+      throw new Error(`API error: ${response.status}`);
+    }
 
     const data = await response.json();
     console.log("Gemini API response:", data);
     
-    // Note: Gemini Pro Vision doesn't actually generate images
-    // We'll still use placeholder images for demo purposes
+    // Note: Gemini doesn't directly return image URLs in this endpoint
+    // For a real implementation, you would need to use a dedicated image generation API
+    // For this demo, we're still using placeholder images
     const placeholderImages = [
       "https://picsum.photos/seed/img1/800/800",
       "https://picsum.photos/seed/img2/800/800",
