@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { uploadGeneratedImage } from "./supabaseService";
 
@@ -21,15 +20,16 @@ export async function generateImage(prompt: string, referenceImage?: string): Pr
         topP: 0.8,
         topK: 0,
         maxOutputTokens: 8192,
+        responseModalities: ["Text", "Image"] // Adding this as per Google's documentation
       }
     };
     
     // Use a more forceful, image-focused prompt with clearer instructions
     requestBody.contents[0].parts.push({ 
       text: `Generate a PHOTOREALISTIC interior design image of: ${prompt}. 
-I NEED AN IMAGE ONLY, DO NOT RETURN ANY TEXT.
+I NEED AN IMAGE IN YOUR RESPONSE, DO NOT RETURN ONLY TEXT.
 GENERATE A HIGH-QUALITY INTERIOR DESIGN VISUALIZATION.
-The output must be a photorealistic interior design image ONLY.
+The output must be a photorealistic interior design image.
 DO NOT INCLUDE ANY TEXT OR WATERMARKS IN THE IMAGE.
 USE REALISTIC LIGHTING, SHADOWS, AND TEXTURES FOR PHOTOREALISM.` 
     });
@@ -105,6 +105,9 @@ USE REALISTIC LIGHTING, SHADOWS, AND TEXTURES FOR PHOTOREALISM.`
         data.candidates[0].content && 
         data.candidates[0].content.parts) {
       
+      // Log all parts to see what we're getting
+      console.log("Response parts:", data.candidates[0].content.parts);
+      
       // First try to find an inlineData part which contains the image
       for (const part of data.candidates[0].content.parts) {
         if (part.inlineData) {
@@ -131,27 +134,26 @@ USE REALISTIC LIGHTING, SHADOWS, AND TEXTURES FOR PHOTOREALISM.`
         }
       }
       
-      // Some Gemini responses include an image URL directly
+      // If no inline data, check if there is text that might indicate an issue
+      const textParts = data.candidates[0].content.parts.filter((part: any) => part.text);
+      if (textParts.length > 0) {
+        console.log("Received text from Gemini API:", textParts.map((p: any) => p.text).join(' '));
+        
+        // If it's just an empty text part, continue checking for other part types
+        if (textParts.every(p => !p.text || p.text.trim() === '')) {
+          console.log("Empty text parts, continuing to check for other parts");
+        } else {
+          throw new Error("The API returned text instead of an image. Please try using more specific interior design terms in your prompt.");
+        }
+      }
+      
+      // Check for fileData (direct URL to image) which is another format Gemini might return
       for (const part of data.candidates[0].content.parts) {
         if (part.fileData && part.fileData.mimeType && part.fileData.mimeType.startsWith('image/')) {
           console.log("Image URL found directly in response");
           return part.fileData.fileUri;
         }
       }
-      
-      // If we've generated text and no image, we need to try again with clearer instructions
-      const textParts = data.candidates[0].content.parts.filter((part: any) => part.text);
-      if (textParts.length > 0) {
-        console.log("Received text instead of image:", textParts.map((p: any) => p.text).join(' '));
-        throw new Error("The API returned text instead of an image. Please try using more specific interior design terms in your prompt.");
-      }
-    }
-    
-    // This case seems to be happening - empty response with no image
-    if (data.candidates && 
-        data.candidates[0] && 
-        (!data.candidates[0].content || !data.candidates[0].content.parts || data.candidates[0].content.parts.length === 0)) {
-      throw new Error("The API returned an empty response. Please try a more detailed interior design prompt.");
     }
     
     // Log the full response structure for debugging

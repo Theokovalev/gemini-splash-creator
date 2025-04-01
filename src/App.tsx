@@ -17,6 +17,9 @@ const App = () => {
     // Set up the Supabase storage bucket
     setupStorageBucket().catch(error => {
       console.error("Failed to set up storage bucket:", error);
+      // This is a background setup task, so we don't want to block the app
+      // if it fails. The app can still function without it, although
+      // images might not be saved permanently.
     });
   }, []);
 
