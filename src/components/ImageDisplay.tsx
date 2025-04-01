@@ -2,16 +2,18 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, RefreshCw, HelpCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 interface ImageDisplayProps {
   imageUrl: string | null;
   isGenerating: boolean;
   onDownload: () => void;
+  onRetry?: () => void;
   error?: string | null;
 }
 
-const ImageDisplay = ({ imageUrl, isGenerating, onDownload, error }: ImageDisplayProps) => {
+const ImageDisplay = ({ imageUrl, isGenerating, onDownload, onRetry, error }: ImageDisplayProps) => {
   if (isGenerating) {
     return (
       <Card className="relative overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
@@ -27,13 +29,36 @@ const ImageDisplay = ({ imageUrl, isGenerating, onDownload, error }: ImageDispla
   }
 
   if (error) {
+    const isTextResponse = error.includes("text instead of an image");
+    
     return (
       <Card className="relative overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
-        <div className="flex flex-col items-center gap-4 text-center p-6">
+        <div className="flex flex-col items-center gap-4 text-center p-6 max-w-md">
           <AlertCircle className="h-12 w-12 text-red-500" />
           <p className="font-medium text-red-500">Generation Failed</p>
-          <p className="text-gray-500 text-sm max-w-md">{error}</p>
-          <p className="text-gray-400 text-xs">Try with a different, more detailed prompt or check your connection.</p>
+          <p className="text-gray-500 text-sm">{error}</p>
+          
+          {isTextResponse && (
+            <Alert className="bg-amber-50 border-amber-200 mt-2">
+              <HelpCircle className="h-4 w-4 text-amber-500" />
+              <AlertTitle>Suggestion</AlertTitle>
+              <AlertDescription className="text-xs">
+                Try using more specific descriptive terms about the interior space - like "minimalist living room with wooden floors" or "modern kitchen with white cabinets and marble countertops".
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {onRetry && (
+            <Button 
+              onClick={onRetry} 
+              variant="outline" 
+              className="mt-2 text-sm"
+              size="sm"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
+            </Button>
+          )}
         </div>
       </Card>
     );

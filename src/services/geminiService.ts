@@ -23,9 +23,13 @@ export async function generateImage(prompt: string, referenceImage?: string): Pr
       }
     };
     
-    // Add prompt text to parts
+    // Use a more direct, image-focused prompt
     requestBody.contents[0].parts.push({ 
-      text: `Create a photorealistic interior design image of: ${prompt}. Make it look like a professional interior photography for furniture marketing. The image should be high quality and detailed.` 
+      text: `Generate an image of: ${prompt}. 
+DO NOT DESCRIBE THE IMAGE IN TEXT. 
+CREATE AN IMAGE ONLY. 
+I want to see a high-quality interior design image, photorealistic style.
+This is for interior design visualization.` 
     });
     
     // If reference image is provided, add it to the request
@@ -118,7 +122,7 @@ export async function generateImage(prompt: string, referenceImage?: string): Pr
       const textParts = data.candidates[0].content.parts.filter((part: any) => part.text);
       if (textParts.length > 0) {
         console.log("Received text instead of image:", textParts.map((p: any) => p.text).join(' '));
-        throw new Error("The API returned text instead of an image. Please try a different prompt.");
+        throw new Error("The API returned text instead of an image. Please try a different, more specific prompt focused on interior design elements.");
       }
     }
     
